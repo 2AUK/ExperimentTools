@@ -6,7 +6,7 @@
 import re
 import math
 import argparse
-import numpy as np
+import pandas as pd
 
 parser = argparse.ArgumentParser(description='Arguments for function..')
 
@@ -30,6 +30,7 @@ args = parser.parse_args()
 def water_compare(target_file, reference_file, cutoff):
     conv_list = []
     ref_list = []
+    dist_list = []
     with open(target_file, 'r') as ofile:
         for line in ofile:
             if re.match('(.*)HOH(.*)', line):
@@ -37,7 +38,7 @@ def water_compare(target_file, reference_file, cutoff):
                 X1 = float(line[6])
                 Y1 = float(line[7])
                 Z1 = float(line[8])
-                Conserved = line[5]
+                Conserved = int(line[5])
 
                 with open(reference_file, 'r') as rfile:
                     for line in rfile:
@@ -46,17 +47,25 @@ def water_compare(target_file, reference_file, cutoff):
                             X2 = float(line[6])
                             Y2 = float(line[7])
                             Z2 = float(line[8])
-                            pot_ref = line[5]
+                            pot_ref = int(line[5])
 
                             distance =float(math.sqrt(((X1-X2) ** 2) + ((Y1-Y2) ** 2) + ((Z1-Z2) ** 2)))
+                            
 
                             if distance <= cutoff:
                                 conv_list.append(Conserved)
                                 ref_list.append(pot_ref)
-    return conv_list, ref_list 
+                                dist_list.append(distance)
+    return conv_list, ref_list, dist_list 
 
-def remove_duplicates(clist, rlist):
-    
+//TODO: Find a pure python method to do this
+def remove_duplicates(clist, dlist, rlist):
+    data = (zip(clist, rlist, dlist))
+    df = pd.DataFrame(data,columns=["Conserved ID", "Reference ID", "Distance"])
+    df.sort_values("Distance", inplace=True, ascending=False)
+    df.drop_duplicates(subset=["Conserved ID"], keep="last", inplace=True)
+    return df["Conserved ID"].tolist(), df["Reference ID"].tolist(), df["Distance"].tolist()
+
 def generate_ref_pdb(reference_file, reference_list, output_file):
     ofile = open(output_file, 'w')
     ofile.seek(0)
@@ -65,10 +74,12 @@ def generate_ref_pdb(reference_file, reference_list, output_file):
             if re.match('(.*)HOH(.*)', line):
                 el = line.split()
                 for i in reference_list:
-                    if el[5] == i:
+                    if int(el[5]) == i:
                         ofile.write(line + "\n")
             else:
                 ofile.write(line + "\n")
     ofile.close()
-rlist = water_compare(args.infile, args.reference, args.cutoff)
-generate_ref_pdb(args.reference, rlist, args.outfile)
+    
+clist, rlist, dlist = water_compare(args.infile, args.reference, args.cutoff)
+dd_clist, dd_rlist, dd_dlist = remove_duplicates(clist, dlist, rlist)
+generate_ref_pdb(args.reference, dd_rlist, args.outfile)

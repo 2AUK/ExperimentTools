@@ -58,7 +58,7 @@ def water_compare(target_file, reference_file, cutoff):
                                 dist_list.append(distance)
     return conv_list, ref_list, dist_list 
 
-//TODO: Find a pure python method to do this
+#TODO: Find a pure python way to do this
 def remove_duplicates(clist, dlist, rlist):
     data = (zip(clist, rlist, dlist))
     df = pd.DataFrame(data,columns=["Conserved ID", "Reference ID", "Distance"])

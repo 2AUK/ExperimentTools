@@ -3,7 +3,7 @@ Automation of Predicted vs Experimental Comparison
 |Requires a specific layout of the filesystem before using
 |otherwise it won't work. Main reason for this is because it's easier to work 
 |with this setup
-TODO: Generalise this. Don't need to a specific filesystem layout, just the pdb
+TODO: Generalise this. Don't need a specific filesystem layout, just the pdb
 files and their paths
 """
 
@@ -51,24 +51,17 @@ def plot_func(data_list, ref):
             reference.append(percentage)
     ind = np.arange(PROTEIN_COUNT)
     width = 0.25
-    
     fig, ax = plt.subplots(figsize=(20,10))
     rects1 = ax.bar(ind, combined, width, color='r')
     rects2 = ax.bar(ind+width, reference, width, color='y')
-    
     ax.set_ylabel('Percentage Correct with ' + str(DENS_CUTOFF) + ' Cut-off')
     ax.set_title('Test_Metric')
     ax.set_xticks(ind + width / 2)
     ax.set_xticklabels(FOLDERS)
-    
     ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference: ' + ref))
-    
     plt.show()
+    fig.savefig("Score" + ref + ".png")
         
-        
-        
-
-
 def compare(pids, tdir, odir, cutoff, ref):
     """
     Main Comparison function
@@ -115,7 +108,7 @@ def compare(pids, tdir, odir, cutoff, ref):
             if a != 0 and ("Combined" in pred_file.name or ref in pred_file.name): 
                 tot_list.append(pid), tot_list.append(auto), tot_list.append(a)
     return tot_list
-                                                 
-output = compare(FOLDERS, DEST, OUTPUT, DIST_CUTOFF, REFERENCE_STRUCT)
-
-plot_func(output, REFERENCE_STRUCT)
+                                             
+for i in FOLDERS:
+    output = compare(FOLDERS, DEST, OUTPUT, DIST_CUTOFF, i)
+    plot_func(output, i)

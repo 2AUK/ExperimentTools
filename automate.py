@@ -42,6 +42,9 @@ def remove_duplicates(elist, plist, denlist, dlist, odir, ref_id, struct_id):
            duplicate_df.query("Density > " + str(DENS_CUTOFF))["Distance"].tolist()
 
 def plot_func(data_list, ref):
+    """
+    THIS IS SO MESSY
+    """
     combined = []
     reference = []
     for main, comp, percentage in zip(*[iter(data_list)]*3):
@@ -55,7 +58,7 @@ def plot_func(data_list, ref):
     rects1 = ax.bar(ind, combined, width, color='r')
     rects2 = ax.bar(ind+width, reference, width, color='y')
     ax.set_ylabel('Percentage Correct with ' + str(DENS_CUTOFF) + ' Cut-off')
-    ax.set_title('Test_Metric')
+    ax.set_title(ref)
     ax.set_xticks(ind + width / 2)
     ax.set_xticklabels(FOLDERS)
     ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference: ' + ref))
@@ -65,6 +68,7 @@ def plot_func(data_list, ref):
 def compare(pids, tdir, odir, cutoff, ref):
     """
     Main Comparison function
+    STARTING REWRITE MY FRIEND
     """
     tot_list = []
     for pid in pids:

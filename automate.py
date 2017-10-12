@@ -8,7 +8,7 @@ files and their paths
 """
 
 import os
-import math
+from math import sqrt
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -64,6 +64,7 @@ def plot_func(data_list, ref):
     ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference: ' + ref))
     plt.show()
     fig.savefig("Score" + ref + ".png")
+    
         
 def compare(pids, tdir, odir, cutoff, ref):
     """
@@ -98,7 +99,7 @@ def compare(pids, tdir, odir, cutoff, ref):
                                     z_2 = float(subels[7])
                                     predid = int(subels[1])
                                     dens = float(subels[8])
-                                    dist = float(math.sqrt((float(x_1 - x_2) ** 2) + \
+                                    dist = float(sqrt((float(x_1 - x_2) ** 2) + \
                                     (float(y_1 - y_2) ** 2) + \
                                     (float(z_1 - z_2) ** 2)))
                                     if dist <= cutoff:
@@ -112,7 +113,59 @@ def compare(pids, tdir, odir, cutoff, ref):
             if a != 0 and ("Combined" in pred_file.name or ref in pred_file.name): 
                 tot_list.append(pid), tot_list.append(auto), tot_list.append(a)
     return tot_list
-                                             
-for i in FOLDERS:
-    output = compare(FOLDERS, DEST, OUTPUT, DIST_CUTOFF, i)
-    plot_func(output, i)
+
+def init_data(input_dir):
+    """
+    Initialise a dictionary of protein IDs and their directories for reading
+    |Arguments
+    |input_dir - a directory containing the relevant proteins. Currently going 
+    |            to use the numbered-folder setup.
+    """
+    pass
+
+def read_data(proteins, output):
+    """
+    Read relevant data from each protein for further 'processing'
+    |Arguments
+    |proteins - a dictionary of the PDB ID and filesystem location
+    |output - some path to output all the data to, either as .txt or maybe .csv
+    """
+    pass
+                            
+def vector_distance_total(input_list):
+    """
+    Calculating distance, using a generator
+    |Arguments
+    |input_list - an list of floats where every 6 values correspond to 2 vectors
+    """
+    for x1, y1, z1, x2, y2, z2 in zip(*[iter(input_list)]*6):
+        x, y, z = x1 - x2, y1 - y2, z1 - z2
+        distance = sqrt(x ** 2 + y ** 2 + z ** 2) 
+        yield distance
+
+def duplicate_filter(input_list):
+    """
+    Test function
+    """
+    sortedlist = sorted(input_list, key=lambda row: (row[0:3], row[1]), reverse=True)
+    for i in sortedlist:
+        print i
+    seen = set()
+    for row in input_list:
+        row = row.split()
+        if tuple(row[0:3]) in seen:
+            continue
+        seen.add(tuple(row[0:3]))
+        yield row
+    print seen
+f = open("/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation_Output/1AM5/Ref_1AM5_CF_Combined.txt")
+f.readline()
+inputs = []
+for line in f:
+    inputs.append(line)
+
+new = duplicate_filter(inputs)
+
+for i in new:
+    print i
+    

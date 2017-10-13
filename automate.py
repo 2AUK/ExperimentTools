@@ -142,28 +142,46 @@ def vector_distance_total(input_list):
         x, y, z = x1 - x2, y1 - y2, z1 - z2
         distance = sqrt(x ** 2 + y ** 2 + z ** 2) 
         yield distance
+        
+def sortlist(input_list, col, direc):
+    """
+    Function for rows in a table
+    |Arguments
+    |input_list - list of lists, make sure the elements of the sub lists are numbers
+    |             not strings
+    |col - which column to sort in the table
+    |direc - ascending, descending
+    """
+    return sorted(input_list, key=lambda row: (row[col]), reverse=direc)
 
+        
 def duplicate_filter(input_list):
     """
-    Test function
+    Pure python method to remove duplicates from a table of data.
+    |Arguments
+    |input_list - a list of lists, with each list being a row in a table
     """
-    sortedlist = sorted(input_list, key=lambda row: (row[0:3], row[1]), reverse=True)
-    for i in sortedlist:
-        print i
+    sortedlist = sortlist(input_list, 3, False)
+    outputlist = []
     seen = set()
-    for row in input_list:
-        row = row.split()
+    for row in sortedlist:
         if tuple(row[0:3]) in seen:
             continue
         seen.add(tuple(row[0:3]))
-        yield row
-    print seen
+        outputlist.append(row)
+    for i in sortlist(outputlist, 1, False):
+        yield i
+
+
+
+
 f = open("/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation_Output/1AM5/Ref_1AM5_CF_Combined.txt")
 f.readline()
 inputs = []
 for line in f:
+    line = map(float, line.split())
     inputs.append(line)
-
+                 
 new = duplicate_filter(inputs)
 
 for i in new:

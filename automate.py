@@ -1,7 +1,7 @@
 """
 Automation of Predicted vs Experimental Comparison
 |Requires a specific layout of the filesystem before using
-|otherwise it won't work. Main reason for this is because it's easier to work 
+|otherwise it won't work. Main reason for this is because it's easier to work
 |with this setup
 TODO: Generalise this. Don't need a specific filesystem layout, just the pdb
 files and their paths
@@ -10,9 +10,9 @@ files and their paths
 import os
 from math import sqrt
 import re
-import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from operator import itemgetter
 
 DEST = "/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation"
 FOLDERS = os.walk(DEST).next()[1]
@@ -21,25 +21,6 @@ DIST_CUTOFF = 2
 DENS_CUTOFF = 5
 PROTEIN_COUNT = len(FOLDERS)
 REFERENCE_STRUCT = '4CMS'
-
-def remove_duplicates(elist, plist, denlist, dlist, odir, ref_id, struct_id):
-    """
-    Remove any duplicates from the data
-    """
-    data = (zip(elist, plist, denlist, dlist))
-    duplicate_df = pd.DataFrame(data, columns=["Experimental ID", "Predicted ID",\
-    "Density", "Distance"])
-    duplicate_df.sort_values("Distance", inplace=True, ascending=False)
-    duplicate_df.drop_duplicates(subset=["Experimental ID"], keep="last", inplace=True)
-    duplicate_df.sort_values("Predicted ID", inplace=True, ascending=True)
-    duplicate_df.to_csv(odir + "/" + ref_id + "/" + "Ref_" + ref_id + "_CF_" +\
-            struct_id + ".txt", index=False, sep='\t')
-    duplicate_df.query("Density > " + str(DENS_CUTOFF)).to_csv(odir + "/" + ref_id + "/" + "Ref_" + ref_id + "_CF_" +\
-            struct_id + "_C_5.txt", index=False, sep='\t')
-    return duplicate_df.query("Density > " + str(DENS_CUTOFF))["Experimental ID"].tolist(), \
-           duplicate_df.query("Density > " + str(DENS_CUTOFF))["Predicted ID"].tolist(), \
-           duplicate_df.query("Density > " + str(DENS_CUTOFF))["Density"].tolist(), \
-           duplicate_df.query("Density > " + str(DENS_CUTOFF))["Distance"].tolist()
 
 def plot_func(data_list, ref):
     """
@@ -114,38 +95,32 @@ def compare(pids, tdir, odir, cutoff, ref):
                 tot_list.append(pid), tot_list.append(auto), tot_list.append(a)
     return tot_list
 
-def init_data(input_dir):
+def init_data(input_path):
     """
     Initialise a dictionary of protein IDs and their directories for reading
     |Arguments
-    |input_dir - a directory containing the relevant proteins. Currently going 
+    |input_path - a directory containing the relevant proteins. Currently going 
     |            to use the numbered-folder setup.
     """
-    pass
+    #Scan folders in the input directory
+    protein_ids = os.walk(input_path).next()[1]
+    for prot_id in protein_ids: pass
+        
 
-def read_data(proteins, output):
-    """
-    Read relevant data from each protein for further 'processing'
-    |Arguments
-    |proteins - a dictionary of the PDB ID and filesystem location
-    |output - some path to output all the data to, either as .txt or maybe .csv
-    """
-    pass
-                            
 def vector_distance_total(input_list):
     """
     Calculating distance, using a generator
     |Arguments
     |input_list - an list of floats where every 6 values correspond to 2 vectors
     """
-    for x1, y1, z1, x2, y2, z2 in zip(*[iter(input_list)]*6):
-        x, y, z = x1 - x2, y1 - y2, z1 - z2
-        distance = sqrt(x ** 2 + y ** 2 + z ** 2) 
+    for x_1, y_1, z_1, x_2, y_2, z_2 in zip(*[iter(input_list)]*6):
+        x_m_x, y_m_y, z_m_z = x_1 - x_2, y_1 - y_2, z_1 - z_2
+        distance = sqrt(x_m_x ** 2 + y_m_y ** 2 + z_m_z ** 2) 
         yield distance
         
 def sortlist(input_list, col, direc):
     """
-    Function for rows in a table
+    Function for sorting rows in a table
     |Arguments
     |input_list - list of lists, make sure the elements of the sub lists are numbers
     |             not strings
@@ -171,6 +146,17 @@ def duplicate_filter(input_list):
         outputlist.append(row)
     for i in sortlist(outputlist, 1, False):
         yield i
+        
+def process_data(proteins, output):
+    """
+    Read relevant data from each protein and process. This is the main function.
+    |Arguments
+    |proteins - a dictionary of the PDB ID and filesystem location
+    |output - some path to output all the data to, either as .txt or maybe .csv
+    """
+    pass
+                            
+
 
 
 
@@ -180,10 +166,12 @@ f.readline()
 inputs = []
 for line in f:
     line = map(float, line.split())
+    line[0] = int(line[0])
+    line[1] = int(line[1])
     inputs.append(line)
                  
 new = duplicate_filter(inputs)
 
 for i in new:
-    print i
+    print "\t".join(map(str, i))
     

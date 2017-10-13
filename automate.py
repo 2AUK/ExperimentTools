@@ -103,8 +103,13 @@ def init_data(input_path):
     |            to use the numbered-folder setup.
     """
     #Scan folders in the input directory
+    experiment_data = []
     protein_ids = os.walk(input_path).next()[1]
-    for prot_id in protein_ids: pass
+    for prot_id in protein_ids:
+        experiment_data.append(prot_id)
+        experiment_data.append(input_path + "/" + prot_id + "/" + prot_id + "_CW.pdb")
+        experiment_data.append(input_path+ "/" + prot_id + "/" + "6-Comparison/O.pdb")
+    return experiment_data
         
 
 def vector_distance_total(input_list):
@@ -154,12 +159,18 @@ def process_data(proteins, output):
     |proteins - a dictionary of the PDB ID and filesystem location
     |output - some path to output all the data to, either as .txt or maybe .csv
     """
-    pass
-                            
-
-
-
-
+    #check if the output directories exist
+    for prot, exp, pred in zip(*[iter(proteins)]*6):
+        if not os.path.exists(output+ "/" + prot):
+            os.mkdir(output + "/" + prot)
+        else:
+            print "Folders already exist. Continuing..."
+        if not os.path.exists(exp):
+            print "Error! Experimental PDB files not found!"
+            break
+        if not os.path.exists(pred):
+            print "Error! Predicted PDB files not found!"
+            break
 
 f = open("/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation_Output/1AM5/Ref_1AM5_CF_Combined.txt")
 f.readline()
@@ -174,4 +185,5 @@ new = duplicate_filter(inputs)
 
 for i in new:
     print "\t".join(map(str, i))
-    
+
+init_data(DEST)

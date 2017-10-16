@@ -11,89 +11,87 @@ import os
 from math import sqrt
 import re
 import matplotlib.pyplot as plt
-import numpy as np
-from operator import itemgetter
 
 DEST = "/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation"
 FOLDERS = os.walk(DEST).next()[1]
-OUTPUT = "/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation_Output"
+OUTPUT = "/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation_Output2"
 DIST_CUTOFF = 2
 DENS_CUTOFF = 5
 PROTEIN_COUNT = len(FOLDERS)
 REFERENCE_STRUCT = '4CMS'
 
-def plot_func(data_list, ref):
-    """
-    THIS IS SO MESSY
-    """
-    combined = []
-    reference = []
-    for main, comp, percentage in zip(*[iter(data_list)]*3):
-        if comp == "Combined":
-            combined.append(percentage)
-        else:
-            reference.append(percentage)
-    ind = np.arange(PROTEIN_COUNT)
-    width = 0.25
-    fig, ax = plt.subplots(figsize=(20,10))
-    rects1 = ax.bar(ind, combined, width, color='r')
-    rects2 = ax.bar(ind+width, reference, width, color='y')
-    ax.set_ylabel('Percentage Correct with ' + str(DENS_CUTOFF) + ' Cut-off')
-    ax.set_title(ref)
-    ax.set_xticks(ind + width / 2)
-    ax.set_xticklabels(FOLDERS)
-    ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference: ' + ref))
-    plt.show()
-    fig.savefig("Score" + ref + ".png")
-    
-        
-def compare(pids, tdir, odir, cutoff, ref):
-    """
-    Main Comparison function
-    STARTING REWRITE MY FRIEND
-    """
-    tot_list = []
-    for pid in pids:
-        current_ref = (tdir + "/" + pid + "/" + pid + "_CW.pdb")
-        if not os.path.exists(odir + "/" + pid):
-            os.mkdir(odir + "/" + pid)
-        for auto in pids:
-            conserved = []
-            predicted = []
-            density = []
-            distance = []
-            generated_file = (tdir + "/" + auto + "/" + "6-Comparison/O.pdb")
-            with open(current_ref, "r") as exp_file:
-                for line in exp_file:
-                    if re.match('(.*)HOH(.*)', line):
-                        els = line.split()
-                        x_1 = float(els[6])
-                        y_1 = float(els[7])
-                        z_1 = float(els[8])
-                        expid = int(els[5])
-                        with open(generated_file, 'r') as pred_file:
-                            for line in pred_file:
-                                if re.match('(.*)HETATM(.*)', line):
-                                    subels = line.split()
-                                    x_2 = float(subels[5])
-                                    y_2 = float(subels[6])
-                                    z_2 = float(subels[7])
-                                    predid = int(subels[1])
-                                    dens = float(subels[8])
-                                    dist = float(sqrt((float(x_1 - x_2) ** 2) + \
-                                    (float(y_1 - y_2) ** 2) + \
-                                    (float(z_1 - z_2) ** 2)))
-                                    if dist <= cutoff:
-                                        conserved.append(expid)
-                                        predicted.append(predid)
-                                        density.append(dens)
-                                        distance.append(dist)
-                                        elist, plist, denlist, dlist = remove_duplicates(conserved, predicted, density,\
-                                                distance, odir, pid, auto)
-            a = (float(len(plist)) / float(max(plist))) * 100
-            if a != 0 and ("Combined" in pred_file.name or ref in pred_file.name): 
-                tot_list.append(pid), tot_list.append(auto), tot_list.append(a)
-    return tot_list
+#def plot_func(data_list, ref):
+#    """
+#    THIS IS SO MESSY
+#    """
+#    combined = []
+#    reference = []
+#    for main, comp, percentage in zip(*[iter(data_list)]*3):
+#        if comp == "Combined":
+#            combined.append(percentage)
+#        else:
+#            reference.append(percentage)
+#    ind = np.arange(PROTEIN_COUNT)
+#    width = 0.25
+#    fig, ax = plt.subplots(figsize=(20,10))
+#    rects1 = ax.bar(ind, combined, width, color='r')
+#    rects2 = ax.bar(ind+width, reference, width, color='y')
+#    ax.set_ylabel('Percentage Correct with ' + str(DENS_CUTOFF) + ' Cut-off')
+#    ax.set_title(ref)
+#    ax.set_xticks(ind + width / 2)
+#    ax.set_xticklabels(FOLDERS)
+#    ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference: ' + ref))
+#    plt.show()
+#    fig.savefig("Score" + ref + ".png")
+#    
+#        
+#def compare(pids, tdir, odir, cutoff, ref):
+#    """
+#    Main Comparison function
+#    STARTING REWRITE MY FRIEND
+#    """
+#    tot_list = []
+#    for pid in pids:
+#        current_ref = (tdir + "/" + pid + "/" + pid + "_CW.pdb")
+#        if not os.path.exists(odir + "/" + pid):
+#            os.mkdir(odir + "/" + pid)
+#        for auto in pids:
+#            conserved = []
+#            predicted = []
+#            density = []
+#            distance = []
+#            generated_file = (tdir + "/" + auto + "/" + "6-Comparison/O.pdb")
+#            with open(current_ref, "r") as exp_file:
+#                for line in exp_file:
+#                    if re.match('(.*)HOH(.*)', line):
+#                        els = line.split()
+#                        x_1 = float(els[6])
+#                        y_1 = float(els[7])
+#                        z_1 = float(els[8])
+#                        expid = int(els[5])
+#                        with open(generated_file, 'r') as pred_file:
+#                            for line in pred_file:
+#                                if re.match('(.*)HETATM(.*)', line):
+#                                    subels = line.split()
+#                                    x_2 = float(subels[5])
+#                                    y_2 = float(subels[6])
+#                                    z_2 = float(subels[7])
+#                                    predid = int(subels[1])
+#                                    dens = float(subels[8])
+#                                    dist = float(sqrt((float(x_1 - x_2) ** 2) + \
+#                                    (float(y_1 - y_2) ** 2) + \
+#                                    (float(z_1 - z_2) ** 2)))
+#                                    if dist <= cutoff:
+#                                        conserved.append(expid)
+#                                        predicted.append(predid)
+#                                        density.append(dens)
+#                                        distance.append(dist)
+#                                        elist, plist, denlist, dlist = remove_duplicates(conserved, predicted, density,\
+#                                                distance, odir, pid, auto)
+#            a = (float(len(plist)) / float(max(plist))) * 100
+#            if a != 0 and ("Combined" in pred_file.name or ref in pred_file.name): 
+#                tot_list.append(pid), tot_list.append(auto), tot_list.append(a)
+#    return tot_list
 
 def init_data(input_path):
     """
@@ -112,7 +110,7 @@ def init_data(input_path):
     return experiment_data
         
 
-def vector_distance_total(input_list):
+def vector_distance_total(input_list, cutoff):
     """
     Calculating distance, using a generator
     |Arguments
@@ -121,7 +119,8 @@ def vector_distance_total(input_list):
     for x_1, y_1, z_1, x_2, y_2, z_2 in zip(*[iter(input_list)]*6):
         x_m_x, y_m_y, z_m_z = x_1 - x_2, y_1 - y_2, z_1 - z_2
         distance = sqrt(x_m_x ** 2 + y_m_y ** 2 + z_m_z ** 2) 
-        yield distance
+        if distance <= cutoff:
+            yield distance
         
 def sortlist(input_list, col, direc):
     """
@@ -141,49 +140,70 @@ def duplicate_filter(input_list):
     |Arguments
     |input_list - a list of lists, with each list being a row in a table
     """
-    sortedlist = sortlist(input_list, 3, False)
     outputlist = []
     seen = set()
-    for row in sortedlist:
-        if tuple(row[0:3]) in seen:
+    for row in sortlist(input_list, 3, False):
+        if row[0]in seen:
             continue
-        seen.add(tuple(row[0:3]))
+        seen.add(row[0])
         outputlist.append(row)
     for i in sortlist(outputlist, 1, False):
         yield i
+
+def split_list(l, n):
+    """
+    Takes a list and breaks it up in to smaller lists
+    |Arguments
+    |l - A list
+    |The number of elements in each sub-list
+    """
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
         
-def process_data(proteins, output):
+        
+def process_data(proteins, output, cutoff):
     """
     Read relevant data from each protein and process. This is the main function.
     |Arguments
     |proteins - a dictionary of the PDB ID and filesystem location
     |output - some path to output all the data to, either as .txt or maybe .csv
     """
-    #check if the output directories exist
-    for prot, exp, pred in zip(*[iter(proteins)]*6):
+    for prot, reference, dummy in zip(*[iter(proteins)]*3):
+
         if not os.path.exists(output+ "/" + prot):
             os.mkdir(output + "/" + prot)
-        else:
-            print "Folders already exist. Continuing..."
-        if not os.path.exists(exp):
-            print "Error! Experimental PDB files not found!"
-            break
-        if not os.path.exists(pred):
-            print "Error! Predicted PDB files not found!"
-            break
+        for gen_id, dummy, generated in zip(*[iter(proteins)]*3):
+            process_list = []
+            with open(reference, 'r') as ref_file:
+                    for eline in ref_file:
+                        if re.match('(.*)HOH(.*)', eline):
+                            e_elements = eline.split()
+                            x_1 = (float(e_elements[6]))
+                            y_1 = (float(e_elements[7]))
+                            z_1 = (float(e_elements[8]))
+                            expid = int(e_elements[5])
+                            with open(generated, 'r') as gen_file:
+                                for pline in gen_file:
+                                    if re.match('(.*)HETATM(.*)', pline):
+                                        p_elements = pline.split()
+                                        x_2 = (float(p_elements[5]))
+                                        y_2 = (float(p_elements[6]))
+                                        z_2 = (float(p_elements[7]))
+                                        predid = int(p_elements[1])
+                                        dens = float(p_elements[8])
+                                        x_m_x, y_m_y, z_m_z = x_1 - x_2, y_1 - y_2, z_1 - z_2
+                                        distance = sqrt(x_m_x ** 2 + y_m_y ** 2 + z_m_z ** 2) 
+                                        if distance <= cutoff:
+                                            process_list.append(expid)
+                                            process_list.append(predid)
+                                            process_list.append(dens)
+                                            process_list.append(distance)
+            #----
+            for i in duplicate_filter(split_list(process_list, 4)):
+                if i[2] > 5:
+                    print prot, gen_id, i
 
-f = open("/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation_Output/1AM5/Ref_1AM5_CF_Combined.txt")
-f.readline()
-inputs = []
-for line in f:
-    line = map(float, line.split())
-    line[0] = int(line[0])
-    line[1] = int(line[1])
-    inputs.append(line)
-                 
-new = duplicate_filter(inputs)
+                            
 
-for i in new:
-    print "\t".join(map(str, i))
-
-init_data(DEST)
+e_dat = init_data(DEST)
+process_data(e_dat, OUTPUT, DIST_CUTOFF)

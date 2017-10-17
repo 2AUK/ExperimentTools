@@ -61,6 +61,9 @@ def plot_func(data_list, ref):
     ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference: ' + ref))
     plt.show()
     fig.savefig("Score" + ref + ".png")
+
+def other_plot(data): pass
+    
         
 def compare(pids, tdir, odir, cutoff, ref):
     """
@@ -71,6 +74,7 @@ def compare(pids, tdir, odir, cutoff, ref):
         current_ref = (tdir + "/" + pid + "/" + pid + "_CW.pdb")
         if not os.path.exists(odir + "/" + pid):
             os.mkdir(odir + "/" + pid)
+        comb_max, ref_max = 0, 0
         for auto in pids:
             conserved = []
             predicted = []
@@ -104,6 +108,16 @@ def compare(pids, tdir, odir, cutoff, ref):
                                         distance.append(dist)
                                         elist, plist, denlist, dlist = remove_duplicates(conserved, predicted, density,\
                                                 distance, odir, pid, auto)
+            if 'Combined' in pred_file.name:
+                comb_max = float(max(plist))
+            if ref in pred_file.name:
+                ref_max = float(max(plist))
+            
+            print pred_file.name
+            if comb_max != 0 and ref_max != 0:
+                print comb_max / ref_max * 100
+            
+            
             a = (float(len(plist)) / float(max(plist))) * 100
             if a != 0 and ("Combined" in pred_file.name or ref in pred_file.name): 
                 tot_list.append(pid), tot_list.append(auto), tot_list.append(a)

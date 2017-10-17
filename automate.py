@@ -11,6 +11,7 @@ import os
 from math import sqrt
 import re
 import matplotlib.pyplot as plt
+import numpy as np
 
 DEST = "/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation"
 FOLDERS = os.walk(DEST).next()[1]
@@ -168,13 +169,13 @@ def process_data(proteins, output, dist_cutoff, dens_cutoff):
     |proteins - a list of the PDB ID and filesystem location
     |output - some path to output all the data to.
     """
+    tot_list = []
     for prot, reference, dummy in zip(*[iter(proteins)]*3):
-
         if not os.path.exists(output+ "/" + prot):
             os.mkdir(output + "/" + prot)
+        
         for gen_id, dummy, generated in zip(*[iter(proteins)]*3):
-            comb_plot = []
-            ref_plot = []
+            per = []
             ofile_name = output + "/" + prot + "/" + "Ref_" + prot+ "_CF_" + gen_id + ".txt" 
             cofile_name = output + "/" + prot + "/" + "Ref_" + prot+ "_CF_" + gen_id + "_C_" + str(dens_cutoff) + ".txt"
             if dens_cutoff != 0:
@@ -216,12 +217,15 @@ def process_data(proteins, output, dist_cutoff, dens_cutoff):
                 with open(cofile_name, 'a') as output_file:
                     for i in duplicate_filter(split_list(process_list, 4)):
                         if i[2] > dens_cutoff:
+                            per.append(i[1])
                             output_file.write('\t'.join(map(str, i)) + '\n')
-                            if 'Combined' in gen_file.name:
-                                comb_plot.append(i)
-            print prot, gen_id
-            print comb_plot
-            bar_plot(comb_plot)
+            if 'Combined' in gen_file.name or gen_file.name.split('/')[5] == ref_file.name.split('/')[5]:
+                pred_c = float(len(per))
+                max_c = float(max(per))
+                perc = pred_c / max_c * 100
+                tot_list.append(prot), tot_list.append(gen_id), tot_list.append(perc)
+    bar_plot(tot_list)
+                
                 
                     
             
@@ -229,12 +233,30 @@ def process_data(proteins, output, dist_cutoff, dens_cutoff):
 ###PLOTTING FUNCTIONS - ADD AS NECESSARY###
 
 def bar_plot(data):
-    predictions = []
-    for row in data:
-        predictions.append(row[1])
-    highest_prediction = float(max(predictions))
-    prediction_count = float(len(predictions))
-    cor_percent = (prediction_count / highest_prediction) * 100
+    combined = []
+    reference = []
+    for main, comp, percentage in zip(*[iter(data)]*3):
+        if comp == "Combined":
+            combined.append(percentage)
+        else:
+            reference.append(percentage)
+    del combined[-1]
+    print len(combined), len(reference)
+    ind = np.arange(PROTEIN_COUNT - 1)
+    width = 0.25
+    fig, ax = plt.subplots(figsize=(20,10))
+    rects1 = ax.bar(ind, combined, width, color='r')
+
+    rects2 = ax.bar(ind+width, reference, width, color='y')
+    ax.set_ylabel('Percentage Correct with ' + str(DENS_CUTOFF) + ' Cut-off')
+    ax.set_title('Test_Metric')
+    ax.set_xticks(ind + width / 2)
+    ax.set_xticklabels(FOLDERS)
+    ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference'))
+    plt.show()
+    fig.savefig("Score.png")
+        
+        
     
             
         

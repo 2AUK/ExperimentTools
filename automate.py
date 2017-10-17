@@ -143,7 +143,7 @@ def duplicate_filter(input_list):
     outputlist = []
     seen = set()
     for row in sortlist(input_list, 3, False):
-        if row[0]in seen:
+        if row[0] in seen:
             continue
         seen.add(row[0])
         outputlist.append(row)
@@ -161,18 +161,27 @@ def split_list(l, n):
         yield l[i:i+n]
         
         
-def process_data(proteins, output, cutoff):
+def process_data(proteins, output, dist_cutoff, dens_cutoff):
     """
     Read relevant data from each protein and process. This is the main function.
     |Arguments
-    |proteins - a dictionary of the PDB ID and filesystem location
-    |output - some path to output all the data to, either as .txt or maybe .csv
+    |proteins - a list of the PDB ID and filesystem location
+    |output - some path to output all the data to.
     """
     for prot, reference, dummy in zip(*[iter(proteins)]*3):
 
         if not os.path.exists(output+ "/" + prot):
             os.mkdir(output + "/" + prot)
         for gen_id, dummy, generated in zip(*[iter(proteins)]*3):
+            comb_plot = []
+            ref_plot = []
+            ofile_name = output + "/" + prot + "/" + "Ref_" + prot+ "_CF_" + gen_id + ".txt" 
+            cofile_name = output + "/" + prot + "/" + "Ref_" + prot+ "_CF_" + gen_id + "_C_" + str(dens_cutoff) + ".txt"
+            if dens_cutoff != 0:
+                with open(cofile_name, 'w') as output_file:
+                    output_file.write('Exp_ID\tPred_ID\tDens\tDist\n')
+            with open(ofile_name, 'w') as output_file:
+                output_file.write('Exp_ID\tPred_ID\tDens\tDist\n')
             process_list = []
             with open(reference, 'r') as ref_file:
                     for eline in ref_file:
@@ -193,17 +202,47 @@ def process_data(proteins, output, cutoff):
                                         dens = float(p_elements[8])
                                         x_m_x, y_m_y, z_m_z = x_1 - x_2, y_1 - y_2, z_1 - z_2
                                         distance = sqrt(x_m_x ** 2 + y_m_y ** 2 + z_m_z ** 2) 
-                                        if distance <= cutoff:
+                                        if distance <= dist_cutoff:
                                             process_list.append(expid)
                                             process_list.append(predid)
                                             process_list.append(dens)
                                             process_list.append(distance)
             #----
-            for i in duplicate_filter(split_list(process_list, 4)):
-                if i[2] > 5:
-                    print prot, gen_id, i
+            with open(ofile_name, 'a') as output_file:
+                for i in duplicate_filter(split_list(process_list, 4)):
+                    output_file.write('\t'.join(map(str, i)) + '\n')
+                    
+            if dens_cutoff != 0:
+                with open(cofile_name, 'a') as output_file:
+                    for i in duplicate_filter(split_list(process_list, 4)):
+                        if i[2] > dens_cutoff:
+                            output_file.write('\t'.join(map(str, i)) + '\n')
+                            if 'Combined' in gen_file.name:
+                                comb_plot.append(i)
+            print prot, gen_id
+            print comb_plot
+            bar_plot(comb_plot)
+                
+                    
+            
+            
+###PLOTTING FUNCTIONS - ADD AS NECESSARY###
 
-                            
+def bar_plot(data):
+    predictions = []
+    for row in data:
+        predictions.append(row[1])
+    highest_prediction = float(max(predictions))
+    prediction_count = float(len(predictions))
+    cor_percent = (prediction_count / highest_prediction) * 100
+    
+            
+        
+
+        
 
 e_dat = init_data(DEST)
-process_data(e_dat, OUTPUT, DIST_CUTOFF)
+line_c = 0
+process_data(e_dat, OUTPUT, DIST_CUTOFF, DENS_CUTOFF)
+        
+        

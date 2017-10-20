@@ -1,5 +1,9 @@
 #2 things:
-#Remove extra chains
+ear
+q:q
+:q
+clear
+Remove extra chains
 #Identify experimental waters in similar positions
 
 

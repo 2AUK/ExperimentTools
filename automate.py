@@ -4,7 +4,8 @@ Automation of Predicted vs Experimental Comparison
 |otherwise it won't work. Main reason for this is because it's easier to work
 |with this setup
 TODO: Generalise this. Don't need a specific filesystem layout, just the pdb
-files and their paths
+      files and their paths.
+      Add argument parser eventually.
 """
 
 import os
@@ -17,7 +18,7 @@ DEST = "/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation"
 FOLDERS = os.walk(DEST).next()[1]
 OUTPUT = "/Users/AbdullahAhmad/Desktop/Aspartic_Proteases_Automation_Output2"
 DIST_CUTOFF = 2
-DENS_CUTOFF = 5
+DENS_CUTOFF = 6
 PROTEIN_COUNT = len(FOLDERS)
 REFERENCE_STRUCT = '4CMS'
 
@@ -101,7 +102,6 @@ def init_data(input_path):
     |input_path - a directory containing the relevant proteins. Currently going 
     |            to use the numbered-folder setup.
     """
-    #Scan folders in the input directory
     experiment_data = []
     protein_ids = os.walk(input_path).next()[1]
     for prot_id in protein_ids:
@@ -156,7 +156,7 @@ def split_list(l, n):
     Takes a list and breaks it up in to smaller lists
     |Arguments
     |l - A list
-    |The number of elements in each sub-list
+    |n - The number of elements in each sub-list
     """
     for i in range(0, len(l), n):
         yield l[i:i+n]
@@ -170,10 +170,12 @@ def process_data(proteins, output, dist_cutoff, dens_cutoff):
     |output - some path to output all the data to.
     """
     tot_list = []
+    tst = [] 
     for prot, reference, dummy in zip(*[iter(proteins)]*3):
         if not os.path.exists(output+ "/" + prot):
             os.mkdir(output + "/" + prot)
-        
+        comb_max, ref_max = 0, 0
+
         for gen_id, dummy, generated in zip(*[iter(proteins)]*3):
             per = []
             ofile_name = output + "/" + prot + "/" + "Ref_" + prot+ "_CF_" + gen_id + ".txt" 
@@ -208,7 +210,18 @@ def process_data(proteins, output, dist_cutoff, dens_cutoff):
                                             process_list.append(predid)
                                             process_list.append(dens)
                                             process_list.append(distance)
-            #----
+                                            
+            #---- Processing Data for plotting funcs.
+            # Really ought to be separate functions but oh well
+            lst = list(duplicate_filter(split_list(process_list, 4)))
+            if 'Combined' in gen_file.name:
+                comb_max = float(max(map(list, zip(*lst))[1]))
+            if gen_file.name.split('/')[5] == ref_file.name.split('/')[5]:
+                ref_max = float(max(map(list, zip(*lst))[1]))
+
+            if comb_max != 0 and ref_max != 0:
+                tst.append(comb_max/ref_max)
+            
             with open(ofile_name, 'a') as output_file:
                 for i in duplicate_filter(split_list(process_list, 4)):
                     output_file.write('\t'.join(map(str, i)) + '\n')
@@ -223,13 +236,12 @@ def process_data(proteins, output, dist_cutoff, dens_cutoff):
                 pred_c = float(len(per))
                 max_c = float(max(per))
                 perc = pred_c / max_c * 100
+                print prot, gen_id, perc
                 tot_list.append(prot), tot_list.append(gen_id), tot_list.append(perc)
     bar_plot(tot_list)
-                
-                
-                    
-            
-            
+    del tst[-1]
+    other_bar_plot(tst)
+                 
 ###PLOTTING FUNCTIONS - ADD AS NECESSARY###
 
 def bar_plot(data):
@@ -241,7 +253,6 @@ def bar_plot(data):
         else:
             reference.append(percentage)
     del combined[-1]
-    print len(combined), len(reference)
     ind = np.arange(PROTEIN_COUNT - 1)
     width = 0.25
     fig, ax = plt.subplots(figsize=(20,10))
@@ -254,17 +265,18 @@ def bar_plot(data):
     ax.set_xticklabels(FOLDERS)
     ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference'))
     plt.show()
-    fig.savefig("Score.png")
+    fig.savefig(OUTPUT + "/Score" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png")
         
-        
+def other_bar_plot(data):
+    ind = np.arange(PROTEIN_COUNT - 1)
+    width = 0.25
+    fig, ax = plt.subplots(figsize=(20,10))
+    rects1 = ax.bar(ind, data, width, color='b')
+    ax.set_ylabel('Ratio of Combined / Reference')
+    ax.set_xticks(ind)
+    ax.set_xticklabels(FOLDERS)
+    plt.show()
+    fig.savefig(OUTPUT + "/test" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png")
     
-            
-        
-
-        
-
 e_dat = init_data(DEST)
-line_c = 0
 process_data(e_dat, OUTPUT, DIST_CUTOFF, DENS_CUTOFF)
-        
-        

@@ -257,7 +257,6 @@ def bar_plot(data):
     width = 0.25
     fig, ax = plt.subplots(figsize=(20,10))
     rects1 = ax.bar(ind, combined, width, color='r')
-
     rects2 = ax.bar(ind+width, reference, width, color='y')
     ax.set_ylabel('Percentage Correct with ' + str(DENS_CUTOFF) + ' Cut-off')
     ax.set_title('Test_Metric')
@@ -265,6 +264,7 @@ def bar_plot(data):
     ax.set_xticklabels(FOLDERS)
     ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference'))
     plt.show()
+
     fig.savefig(OUTPUT + "/Score" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png")
         
 def other_bar_plot(data):
@@ -276,7 +276,8 @@ def other_bar_plot(data):
     ax.set_xticks(ind)
     ax.set_xticklabels(FOLDERS)
     plt.show()
-    fig.savefig(OUTPUT + "/test" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png")
-    
+    fig.savefig(OUTPUT + "/test" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png"
+    fig.savefig("Score" + ref + ".png")
+                
 e_dat = init_data(DEST)
 process_data(e_dat, OUTPUT, DIST_CUTOFF, DENS_CUTOFF)

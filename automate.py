@@ -264,7 +264,6 @@ def bar_plot(data):
     ax.set_xticklabels(FOLDERS)
     ax.legend((rects1[0], rects2[0]), ('Combined', 'Reference'))
     plt.show()
-
     fig.savefig(OUTPUT + "/Score" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png")
         
 def other_bar_plot(data):
@@ -276,8 +275,7 @@ def other_bar_plot(data):
     ax.set_xticks(ind)
     ax.set_xticklabels(FOLDERS)
     plt.show()
-    fig.savefig(OUTPUT + "/test" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png"
-    fig.savefig("Score" + ref + ".png")
+    fig.savefig(OUTPUT + "/test" + "dens" + str(DENS_CUTOFF) + "dis" + str(DIST_CUTOFF) + ".png")
                 
 e_dat = init_data(DEST)
 process_data(e_dat, OUTPUT, DIST_CUTOFF, DENS_CUTOFF)

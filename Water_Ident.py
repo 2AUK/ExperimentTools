@@ -1,11 +1,4 @@
-#2 things:
-ear
-q:q
-:q
-clear
-Remove extra chains
-#Identify experimental waters in similar positions
-
+1
 
 import re
 import math
@@ -32,10 +25,11 @@ args = parser.parse_args()
 #                            ofile.write(line + "\n")
 
 def water_compare(target_file, reference_file, cutoff):
-    conv_list = []
-    ref_list = []
-    dist_list = []
+
     with open(target_file, 'r') as ofile:
+        conv_list = []
+        ref_list = []
+        dist_list = []
         for line in ofile:
             if re.match('(.*)HOH(.*)', line):
                 line = line.split()
@@ -60,6 +54,7 @@ def water_compare(target_file, reference_file, cutoff):
                                 conv_list.append(Conserved)
                                 ref_list.append(pot_ref)
                                 dist_list.append(distance)
+                                
     return conv_list, ref_list, dist_list 
 
 #TODO: Find a pure python way to do this
@@ -70,20 +65,20 @@ def remove_duplicates(clist, dlist, rlist):
     df.drop_duplicates(subset=["Conserved ID"], keep="last", inplace=True)
     return df["Conserved ID"].tolist(), df["Reference ID"].tolist(), df["Distance"].tolist()
 
-def generate_ref_pdb(reference_file, reference_list, output_file):
+def generate_ref_pdb(reference_file, pred_list, output_file, input_file):
     ofile = open(output_file, 'w')
     ofile.seek(0)
-    with open(reference_file, 'r') as rfile:
-        for line in rfile:
+    with open(input_file) as ifile:
+        for line in ifile:
             if re.match('(.*)HOH(.*)', line):
-                el = line.split()
-                for i in reference_list:
-                    if int(el[5]) == i:
-                        ofile.write(line + "\n")
+                for i in pred_list:
+                    if int(line.split()[5]) == int(i):
+                        ofile.write(line + '\n')
             else:
-                ofile.write(line + "\n")
+                ofile.write(line + '\n')
+                
     ofile.close()
     
 clist, rlist, dlist = water_compare(args.infile, args.reference, args.cutoff)
 dd_clist, dd_rlist, dd_dlist = remove_duplicates(clist, dlist, rlist)
-generate_ref_pdb(args.reference, dd_rlist, args.outfile)
+generate_ref_pdb(args.reference, dd_rlist, args.outfile, args.infile)
